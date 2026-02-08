@@ -1,0 +1,7 @@
+aiohttp==3.9.1
+aiosqlite==0.19.0
+beautifulsoup4==4.12.2
+ollama==0.1.6
+playwright==1.40.0
+playwright-stealth==1.0.6
+rich==13.7.0
