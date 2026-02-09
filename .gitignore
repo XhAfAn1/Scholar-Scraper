@@ -1,1 +1,5 @@
-/venv
+\venv
+\my_papers.csv
+\__pycache__
+\user_search_prefs.json
+\scholar_data.db

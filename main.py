@@ -79,14 +79,23 @@ class ScholarEngine:
             
             console.print("\n[1]  Start New Scrap", style="bold green")
             console.print("[2]  Search Settings", style="bold blue")
-            console.print("[3]  Exit", style="bold red")
+            console.print("[3]  Export as CSV", style="bold blue")
+            console.print("[0]  Exit", style="bold red")
             print("\n")
             
-            choice = Prompt.ask("Select Option", choices=["1", "2", "3"])
+            choice = Prompt.ask("Select Option", choices=["1", "2", "3", "0"], default="1")
             
-            if choice == "3":
+            if choice == "0":
                 console.print("[yellow]Goodbye![/yellow]")
                 break
+
+            if choice == "3":
+                console.print("\n[bold green]Exporting Data...[/bold green]")
+                # Call the export function from check_db.py
+                from check_db import export_to_csv
+                export_to_csv()
+                Prompt.ask("\nPress Enter to return to menu...")
+                continue
                 
             if choice == "2":
                 self.settings_menu()

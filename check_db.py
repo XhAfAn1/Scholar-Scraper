@@ -1,17 +1,15 @@
 import sqlite3
 import pandas as pd
+from rich import _console
 
-# Connect to the database
-conn = sqlite3.connect("scholar_harvest.db")
+def export_to_csv(db_path="scholar_data.db", output_file="my_papers.csv"):
+    conn = sqlite3.connect(db_path)
 
-# Read data into a pandas DataFrame (makes it pretty)
-df = pd.read_sql_query("SELECT * FROM papers", conn)
+    df = pd.read_sql_query("SELECT * FROM papers", conn)
 
-# Print the first 10 rows
-print(df.head(10))
+    print(df.head(10))
 
-# Optional: Export to CSV if you want to open in Excel
-df.to_csv("my_papers.csv", index=False)
-print("\n✅ Exported data to 'my_papers.csv'")
+    df.to_csv(output_file, index=False)
+    _console.print(f"\n[bold green]Exported data to '{output_file}'")
 
-conn.close()
+    conn.close()
