@@ -1,29 +1,22 @@
 import ollama
 import json
-from config.settings import MODEL_NAME
+from config.settings import MODEL_NAME, LLM_KEYWORD_LIMIT
 from rich import print as rprint
 
 class ResearchBrain:
     def generate_search_plan(self, topic: str) -> list:
-        """
-        Uses Local LLM to break the topic into distinct search queries.
-        Returns a list of strings.
-        """
-        rprint(f"[magenta]🧠 Consulting {MODEL_NAME} for strategy...[/magenta]")
+        rprint(f"[magenta]Consulting {MODEL_NAME} for strategy...[/magenta]")
         
         prompt = f"""
-        Act as a Senior Research Librarian.
+        Act as a Research Librarian.
         Topic: "{topic}"
         
-        Task: Generate 6 distinct Google Scholar search queries to cover this topic comprehensively.
-        Include:
-        1. 2 Broad queries (core concepts).
-        2. 2 Specific/Technical queries (methodologies, specific algorithms).
-        3. 2 Related field queries.
+        Task: Generate exactly {LLM_KEYWORD_LIMIT} distinct Google Scholar search queries.
+        Include a mix of broad concepts and specific technical terms.
 
         OUTPUT JSON FORMAT ONLY:
         {{
-            "queries": ["query 1", "query 2", "query 3", ...]
+            "queries": ["query 1", "query 2", ...]
         }}
         """
 
@@ -37,4 +30,4 @@ class ResearchBrain:
             
         except Exception as e:
             rprint(f"[red]LLM Error:[/red] {e}")
-            return [topic] # Fallback
+            return [topic]
