@@ -1,13 +1,15 @@
+# scraper/browser.py
 import asyncio
 import random
+from urllib.parse import urlencode # <--- ADD THIS IMPORT
 from playwright.async_api import async_playwright
 from playwright_stealth import stealth_async
 from config.settings import Global_TIMEOUT, Human_DELAY_MIN, Human_DELAY_MAX
 
 class StealthBrowser:
-    async def fetch_scholar_results(self, query: str, page_num: int, search_prefs: dict, years: dict):
+    async def fetch_scholar_results(self, query: str, page_num: int, search_prefs: dict, years: dict, advanced_params: dict = None):
         """
-        Fetches results using user preferences + Dynamic Year Range.
+        Fetches results. Supports both Standard (LLM) and Advanced (Manual) modes.
         """
         async with async_playwright() as p:
             browser = await p.chromium.launch(headless=False) 
@@ -23,24 +25,39 @@ class StealthBrowser:
             base_url = "https://scholar.google.com/scholar"
             start_index = (page_num - 1) * 10
             
-            # 1. Base Query
-            params = f"?start={start_index}&q={query.replace(' ', '+')}"
-            
-            # 2. Sort By Date
-            if search_prefs.get("sort_by") == "date":
-                params += "&scisbd=1"
-            
-            # 3. Article Type (Review)
-            if search_prefs.get("article_type") == "review":
-                params += "&as_rr=1"
+            # --- URL CONSTRUCTION ---
+            if advanced_params:
+                # MODE A: ADVANCED SEARCH (Manual Inputs)
+                # Google Scholar Advanced Search Parameters
+                params = {
+                    "start": start_index,
+                    "as_q": advanced_params.get("all_words", ""),       # All words
+                    "as_epq": advanced_params.get("exact_phrase", ""),  # Exact phrase
+                    "as_oq": advanced_params.get("at_least_one", ""),   # At least one
+                    "as_eq": advanced_params.get("without_words", ""),  # Without
+                    "as_occt": advanced_params.get("occurrence", "any"),# "any" or "title"
+                    "as_sauthors": advanced_params.get("author", ""),   # Author
+                    "as_publication": advanced_params.get("pub", ""),   # Publication
+                    "as_ylo": advanced_params.get("date_low", ""),      # Year Low
+                    "as_yhi": advanced_params.get("date_high", "")      # Year High
+                }
+                # Filter out empty keys to keep URL clean
+                clean_params = {k: v for k, v in params.items() if v}
+                final_url = f"{base_url}?{urlencode(clean_params)}"
                 
-            # 4. Dynamic Year Filters (Passed from Main)
-            if years.get("min"):
-                params += f"&as_ylo={years['min']}"
-            if years.get("max"):
-                params += f"&as_yhi={years['max']}"
-            
-            final_url = base_url + params
+            else:
+                # MODE B: STANDARD SEARCH (LLM Keywords)
+                params_str = f"?start={start_index}&q={query.replace(' ', '+')}"
+                
+                # Apply Preferences
+                if search_prefs.get("sort_by") == "date": params_str += "&scisbd=1"
+                if search_prefs.get("article_type") == "review": params_str += "&as_rr=1"
+                
+                # Apply Dynamic Years
+                if years and years.get("min"): params_str += f"&as_ylo={years['min']}"
+                if years and years.get("max"): params_str += f"&as_yhi={years['max']}"
+                
+                final_url = base_url + params_str
             # ------------------------
 
             try:
